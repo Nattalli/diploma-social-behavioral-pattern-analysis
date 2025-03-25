@@ -1,0 +1,6 @@
+source,target,type
+user1,user2,FRIENDS_WITH
+user2,user3,FRIENDS_WITH
+user3,user4,FRIENDS_WITH
+user4,user5,FRIENDS_WITH
+user5,user1,FRIENDS_WITH

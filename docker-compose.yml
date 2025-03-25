@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  neo4j:
+    image: neo4j:5.15
+    container_name: neo4j
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      - NEO4J_AUTH=neo4j/password123
+      - NEO4J_ACCEPT_LICENSE_AGREEMENT=yes
+      - NEO4J_dbms_default__listen__address=0.0.0.0
+      - NEO4J_dbms_connector_bolt_advertised__address=127.0.0.1:7687
+    volumes:
+      - neo4j_data:/data
+      - ./init:/var/lib/neo4j/import
+
+  init-script:
+    image: neo4j:5.15
+    depends_on:
+      - neo4j
+    entrypoint: >
+      /bin/bash -c "
+      echo '📦 Встановлюємо netcat...' &&
+      apk add --no-cache netcat-openbsd > /dev/null &&
+      echo '⏳ Очікуємо доступність Neo4j по порту 7687...' &&
+      for i in {1..20}; do
+        nc -z neo4j 7687 && echo '✅ Neo4j доступний!' && break
+        echo '🔁 Очікування... ($i)' && sleep 3
+      done &&
+      cypher-shell -u neo4j -p password123 -f /var/lib/neo4j/import/init.cypher &&
+      echo '✅ Ініціалізацію завершено.'
+      "
+    volumes:
+      - ./init:/var/lib/neo4j/import
+
+volumes:
+  neo4j_data:
